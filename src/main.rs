@@ -34,7 +34,7 @@ fn main() {
 
     for update in &updates {
         let mut pages = update.split(",").collect::<Vec<&str>>();
-        let (mut valid,mut index1,mut index2) = check_if_update_valid(&pages, &rules);
+        let (mut valid, mut index1, mut index2) = check_if_update_valid(&pages, &rules);
         let length = pages.len();
 
         if valid {
@@ -66,39 +66,16 @@ fn main() {
 }
 
 fn check_if_update_valid<'a>(pages: &'a Vec<&str>, rules: &'a Vec<&str>) -> (bool,usize,usize) {
-    let mut valid = true;
-    let mut index1 = 0;
-    let mut index2 = 0;
-
-    for (_index, page) in pages.iter().enumerate() {
-        let matched_rules = rules.iter().filter(|rule| *page == rule.split("|").collect::<Vec<&str>>()[0]); 
+    for (index1, page) in pages.iter().enumerate() {
+        let matched_rules = rules.iter().filter(|rule| &rule.split("|").collect::<Vec<&str>>()[0] == page); 
         for rule in matched_rules {
-            //println!("page: {page} = {rule}");
-            let after_page = rule.split("|").collect::<Vec<&str>>()[1];
-            for (i, p) in pages.iter().enumerate() {
-                //println!("{page}");
-                if *p == *page {
-                    // if we reach this first the update is valid
-                    break;
+            let second_page = rule.split("|").collect::<Vec<&str>>()[1];
+            if let Some(index2) = pages.iter().position(|p| *p == second_page) {
+                if index2 < index1 {
+                    return (false, index1, index2);
                 }
-                else if *p == after_page {
-                    // if we reach here first the update is not valid
-                    valid = false;
-                    println!("{rule} failed!");
-                    index1 = i;
-                    break;
-                }
-            }
-            if !valid {
-                for (i, p) in pages.iter().enumerate() {
-                    if *p == *page {
-                        index2 = i;
-                        break;
-                    }
-                }
-                return (valid, index1, index2);
             }
         }
     }
-    return (valid, index1, index2);
+    return (true, 0, 0);
 }
